@@ -27,7 +27,7 @@ export default {
 .recommend {
   display: flex;
   width: 100%;
-  font-size: 14px;
+  font-size: 12px;
   padding: 10px 0 20px;
   border-bottom: 8px solid #eee;
 }
