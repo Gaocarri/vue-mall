@@ -5,7 +5,7 @@
       :key="index"
       class="tab-control-item"
       :class="{active:index===currentIndex}"
-      @click="currentIndex=index"
+      @click="itemClick(index)"
     >
       <span>{{item}}</span>
     </div>
@@ -27,6 +27,12 @@ export default {
     return {
       currentIndex: 0
     };
+  },
+  methods: {
+    itemClick(index) {
+      this.currentIndex = index;
+      this.$emit("tabClick", index);
+    }
   }
 };
 </script>
