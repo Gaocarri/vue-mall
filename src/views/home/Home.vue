@@ -5,7 +5,13 @@
         <div>购物街</div>
       </template>
     </nav-bar>
-
+    <tab-control
+      :titles="['流行','新款','精选']"
+      class="fixed-tab-control"
+      @tabClick="tabClick"
+      ref="tabControl1"
+      v-show="isTabFixed"
+    />
     <scroll
       class="content"
       ref="scroll"
@@ -22,7 +28,7 @@
           :titles="['流行','新款','精选']"
           class="tab-control"
           @tabClick="tabClick"
-          ref="tabControl"
+          ref="tabControl2"
         />
         <goods-list :goods="goodsType" />
       </template>
@@ -80,7 +86,9 @@ export default {
       currentType: ["pop", "new", "sell"],
       index: 0,
       isBackTopShow: false,
-      tabOffsetTop: 0
+      tabOffsetTop: 0,
+      isTabFixed: false,
+      saveY: 0
     };
   },
   created() {
@@ -98,6 +106,13 @@ export default {
       refresh();
     });
   },
+  activated() {
+    this.$refs.scroll.scrollTo(0, this.saveY);
+    this.$refs.scroll.refresh();
+  },
+  deactivated() {
+    this.saveY = this.$refs.scroll.scroll.y;
+  },
   computed: {
     goodsType() {
       return this.goods[this.currentType[this.index]].list;
@@ -108,12 +123,18 @@ export default {
     // home-nav切换
     tabClick(index) {
       this.index = index;
+      this.$refs.tabControl1.currentIndex = index;
+      this.$refs.tabControl2.currentIndex = index;
     },
     backClick() {
       this.$refs.scroll.scrollTo(0, 0, 500);
     },
     contentScroll(position) {
+      // 1.判断Backtop是否显示
       this.isBackTopShow = position.y < -1000;
+
+      // 2.决定tabControl是否吸顶(position:fixed)
+      this.isTabFixed = -position.y > this.tabOffsetTop;
     },
     loadMore() {
       this.getHomeGoods(this.currentType[this.index]);
@@ -121,7 +142,7 @@ export default {
     swiperImageLoad() {
       // 获取tabControl的offsetTop
       // 所有组件中都有一个属性$el,用于获取组件中的元素
-      console.log(this.$refs.tabControl.$el.offsetTop);
+      this.tabOffsetTop = this.$refs.tabControl2.$el.offsetTop;
     },
 
     // 网络请求相关方法
@@ -138,7 +159,7 @@ export default {
         // ES6 arr1.push(...arr2)将arr2一个个push到arr1
         this.goods[type].list.push(...res.data.list);
         this.goods[type].page += 1;
-
+        // 执行finishPullUp,使下次下拉仍然可以加载
         this.$refs.scroll.finishPullUp();
       });
     }
@@ -148,7 +169,6 @@ export default {
 
 <style scoped>
 #home {
-  padding-top: 44px;
   height: 100vh;
   position: relative;
 }
@@ -156,11 +176,6 @@ export default {
 .home-nav {
   background-color: var(--color-tint);
   color: #fff;
-  z-index: 1;
-  position: fixed;
-  left: 0;
-  right: 0;
-  top: 0;
 }
 
 .tab-control {
@@ -170,14 +185,16 @@ export default {
 
 .content {
   overflow: hidden;
-
   position: absolute;
   top: 44px;
   bottom: 49px;
+  /* calc计算 -左右要有空格
+  height: calc(100% - 93px); */
 }
 
-/* .content {
-  calc计算 -左右要有空格
-  height: calc(100% - 93px);
-} */
+.fixed-tab-control {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
 </style>
