@@ -87,7 +87,7 @@ export default {
   display: flex;
   /* justify-content: space-between; */
   padding-bottom: 18px;
-  border-bottom: 3px solid rgba(100, 100, 100, 0.1);
+  border-bottom: 5px solid #f2f5f8;
   font-size: 14px;
   text-align: center;
 }

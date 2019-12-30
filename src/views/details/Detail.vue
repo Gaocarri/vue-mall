@@ -1,13 +1,16 @@
 <template>
   <div id="detail">
-    <detail-nav-bar class="detail-nav" />
-    <scroll class="content" ref="scroll">
+    <detail-nav-bar class="detail-nav" @titleClick="titleClick" ref="nav" />
+    <scroll class="content" ref="scroll" :probeType="3" @scroll="contentScroll">
       <detail-swiper :top-images="topImages" />
       <detail-goods-info :goods="goods" />
       <detail-shop-info :shop="shop" />
       <detail-info :detailInfo="detailInfo" @imageLoad="imageLoad"></detail-info>
-      <detail-param-info :paramInfo="paramInfo" />
+      <detail-param-info :paramInfo="paramInfo" ref="params" />
+      <comment-info :comment-info="commentInfo" ref="comments" />
+      <goods-list :goods="recommends" ref="recommends" />
     </scroll>
+    <detail-bottom-bar />
   </div>
 </template>
 
@@ -18,10 +21,22 @@ import DetailGoodsInfo from "./childrenComps/DetailGoodsInfo";
 import DetailShopInfo from "./childrenComps/DetailShopInfo";
 import DetailInfo from "./childrenComps/DetaiInfo";
 import DetailParamInfo from "./childrenComps/DetailParamInfo";
+import DetailBottomBar from "./childrenComps/DetailBottomBar";
+import CommentInfo from "./childrenComps/DetailCommentInfo";
+import GoodsList from "components/content/goods/GoodsList";
+
+import { itemListenerMixin } from "common/mixin";
+import { debounce } from "common/utils";
 
 import Scroll from "components/common/scroll/Scroll";
 
-import { getDetail, Goods, Shop, GoodsParam } from "network/detail";
+import {
+  getDetail,
+  Goods,
+  Shop,
+  GoodsParam,
+  getRecommend
+} from "network/detail";
 
 export default {
   name: "Detail",
@@ -32,7 +47,12 @@ export default {
       goods: {},
       shop: {},
       detailInfo: {},
-      paramInfo: {}
+      paramInfo: {},
+      commentInfo: {},
+      recommends: [],
+      themeTopYs: [],
+      getThemeTopYs: null,
+      currentIndex: 0
     };
   },
   components: {
@@ -41,16 +61,19 @@ export default {
     DetailGoodsInfo,
     DetailShopInfo,
     DetailInfo,
+    DetailParamInfo,
+    DetailBottomBar,
     Scroll,
-    DetailParamInfo
+    CommentInfo,
+    GoodsList
   },
+  mixins: [itemListenerMixin],
   created() {
     // 1.保存传入的iid
     this.iid = this.$route.params.iid;
 
     // 2.根据iid请求
     getDetail(this.iid).then(res => {
-      console.log(res);
       const data = res.result;
       // 1.获取顶部的轮播图片
       this.topImages = res.result.itemInfo.topImages;
@@ -71,11 +94,65 @@ export default {
         data.itemParams.info,
         data.itemParams.rule
       );
+
+      // 6.取出评论信息
+      if (data.rate.cRate !== 0) {
+        this.commentInfo = data.rate.list[0];
+      }
+
+      // 7.取出推荐数据
+      getRecommend().then(res => {
+        this.recommends = res.data.list;
+      });
     });
+
+    // 执行完的回调函数
+    this.$nextTick(() => {});
+
+    // 给getThemeTopY赋值（进行防抖）
+    this.getThemeTopYs = debounce(() => {
+      this.themeTopYs = [];
+      this.themeTopYs.push(0);
+      this.themeTopYs.push(this.$refs.params.$el.offsetTop);
+      this.themeTopYs.push(this.$refs.comments.$el.offsetTop);
+      this.themeTopYs.push(this.$refs.recommends.$el.offsetTop);
+    }, 300);
+  },
+  destroyed() {
+    this.$bus.$off("itemImageLoad", this.itemImageListener);
   },
   methods: {
     imageLoad() {
       this.$refs.scroll.refresh();
+      this.getThemeTopYs();
+    },
+    titleClick(index) {
+      this.$refs.scroll.scrollTo(0, -this.themeTopYs[index], 300);
+    },
+    contentScroll(position) {
+      // 1.获取y值
+      const positionY = -position.y;
+      const lastIndex = this.themeTopYs.length - 1;
+      // 2.positionY和主题中的数值对比
+      for (let i in this.themeTopYs) {
+        i = parseInt(i);
+        if (
+          positionY >= this.themeTopYs[i] &&
+          positionY < this.themeTopYs[i + 1] &&
+          this.currentIndex !== i
+        ) {
+          // 防止赋值过于频繁
+          this.currentIndex = i;
+          this.$refs.nav.currentIndex = i;
+        } else if (
+          positionY >= this.themeTopYs[lastIndex] &&
+          this.currentIndex !== lastIndex
+        ) {
+          // 防止赋值过于频繁
+          this.currentIndex = lastIndex;
+          this.$refs.nav.currentIndex = lastIndex;
+        }
+      }
     }
   }
 };

@@ -88,7 +88,8 @@ export default {
       isBackTopShow: false,
       tabOffsetTop: 0,
       isTabFixed: false,
-      saveY: 0
+      saveY: 0,
+      itemImageListener: null
     };
   },
   created() {
@@ -99,19 +100,23 @@ export default {
     this.getHomeGoods("new");
     this.getHomeGoods("sell");
   },
-  mounted() {
+  activated() {
     // 监听图片加载
     const refresh = debounce(this.$refs.scroll.refresh, 50); // 每隔200ms再去调用refresh,如果上一次还未完成则清除上一次的200，再过200ms执行
-    this.$bus.$on("itemImageLoad", () => {
+    this.itemImageListener = () => {
       refresh();
-    });
-  },
-  activated() {
+    };
+    this.$bus.$on("itemImageLoad", this.itemImageListener);
+
     this.$refs.scroll.scrollTo(0, this.saveY);
     this.$refs.scroll.refresh();
   },
   deactivated() {
+    // 1.保存Y值
     this.saveY = this.$refs.scroll.scroll.y;
+
+    // 2.取消全局事件的监听
+    this.$bus.$off("itemImageLoad", this.itemImageListener);
   },
   computed: {
     goodsType() {

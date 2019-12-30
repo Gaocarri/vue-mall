@@ -55,7 +55,7 @@ export default {
 
 <style scoped>
 .shop-info {
-  border-bottom: 3px solid rgba(100, 100, 100, 0.1);
+  border-bottom: 5px solid #f2f5f8;
 }
 .lowBg {
   background-color: #5ea732;
