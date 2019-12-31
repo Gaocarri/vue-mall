@@ -6,7 +6,7 @@
       <span class="price">合计:¥{{totalPrice}}</span>
     </div>
 
-    <div class="calculate">去计算({{checkLength}})</div>
+    <div class="calculate" @click="calcClick">去计算({{checkLength}})</div>
   </div>
 </template>
 
@@ -28,6 +28,16 @@ export default {
       // 简化
       const select = this.isSelectAll;
       this.$store.state.cartList.map(item => (item.checked = !select));
+    },
+    calcClick() {
+      let cartLength = this.$store.state.cartList.filter(
+        item => item.checked === true
+      ).length;
+      if (!cartLength) {
+        this.$toast.show("请选择要购买的商品", 2000);
+      } else {
+        this.$toast.show("非常抱歉~暂不支持购买");
+      }
     }
   },
   computed: {
@@ -65,9 +75,6 @@ export default {
 <style scoped>
 .bottom-bar {
   height: 40px;
-  display: fixed;
-  left: 0;
-  right: 0;
   background-color: #eee;
   line-height: 40px;
   position: relative;

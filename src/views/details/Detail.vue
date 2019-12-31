@@ -10,7 +10,7 @@
       <comment-info :comment-info="commentInfo" ref="comments" />
       <goods-list :goods="recommends" ref="recommends" />
     </scroll>
-    <detail-bottom-bar @addToCart="addToCart" />
+    <detail-bottom-bar @addToCart="addToCart" @buy="buy" />
 
     <back-top @click.native="backClick" v-show="isBackTopShow" />
   </div>
@@ -25,12 +25,14 @@ import DetailInfo from "./childrenComps/DetaiInfo";
 import DetailParamInfo from "./childrenComps/DetailParamInfo";
 import DetailBottomBar from "./childrenComps/DetailBottomBar";
 import CommentInfo from "./childrenComps/DetailCommentInfo";
-import GoodsList from "components/content/goods/GoodsList";
 
 import { itemListenerMixin, backTopMixin } from "common/mixin";
 import { debounce } from "common/utils";
 
+import GoodsList from "components/content/goods/GoodsList";
 import Scroll from "components/common/scroll/Scroll";
+
+import { mapActions } from "vuex";
 
 import {
   getDetail,
@@ -125,6 +127,7 @@ export default {
     this.$bus.$off("itemImageLoad", this.itemImageListener);
   },
   methods: {
+    ...mapActions(["addCart"]),
     imageLoad() {
       this.$refs.scroll.refresh();
       this.getThemeTopYs();
@@ -170,7 +173,12 @@ export default {
       product.iid = this.iid;
 
       // 2.将商品添加到购物车中
-      this.$store.dispatch("addCart", product);
+      this.addCart(product).then(res => {
+        this.$toast.show(res, 2000);
+      });
+    },
+    buy() {
+      this.$toast.show("非常抱歉~暂不支持购买", 2000);
     }
   }
 };
