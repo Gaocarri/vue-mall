@@ -10,7 +10,9 @@
       <comment-info :comment-info="commentInfo" ref="comments" />
       <goods-list :goods="recommends" ref="recommends" />
     </scroll>
-    <detail-bottom-bar />
+    <detail-bottom-bar @addToCart="addToCart" />
+
+    <back-top @click.native="backClick" v-show="isBackTopShow" />
   </div>
 </template>
 
@@ -25,7 +27,7 @@ import DetailBottomBar from "./childrenComps/DetailBottomBar";
 import CommentInfo from "./childrenComps/DetailCommentInfo";
 import GoodsList from "components/content/goods/GoodsList";
 
-import { itemListenerMixin } from "common/mixin";
+import { itemListenerMixin, backTopMixin } from "common/mixin";
 import { debounce } from "common/utils";
 
 import Scroll from "components/common/scroll/Scroll";
@@ -67,7 +69,7 @@ export default {
     CommentInfo,
     GoodsList
   },
-  mixins: [itemListenerMixin],
+  mixins: [itemListenerMixin, backTopMixin],
   created() {
     // 1.保存传入的iid
     this.iid = this.$route.params.iid;
@@ -108,7 +110,8 @@ export default {
 
     // 执行完的回调函数
     this.$nextTick(() => {});
-
+  },
+  mounted() {
     // 给getThemeTopY赋值（进行防抖）
     this.getThemeTopYs = debounce(() => {
       this.themeTopYs = [];
@@ -130,6 +133,9 @@ export default {
       this.$refs.scroll.scrollTo(0, -this.themeTopYs[index], 300);
     },
     contentScroll(position) {
+      // 显示BackTop
+      this.isBackTopShow = position.y < -1000;
+
       // 1.获取y值
       const positionY = -position.y;
       const lastIndex = this.themeTopYs.length - 1;
@@ -153,6 +159,18 @@ export default {
           this.$refs.nav.currentIndex = lastIndex;
         }
       }
+    },
+    addToCart() {
+      // 1.获取购物车需要展示的信息
+      const product = {};
+      product.image = this.topImages[0];
+      product.title = this.goods.title;
+      product.desc = this.goods.desc;
+      product.price = this.goods.lowNowPrice;
+      product.iid = this.iid;
+
+      // 2.将商品添加到购物车中
+      this.$store.dispatch("addCart", product);
     }
   }
 };
@@ -169,9 +187,10 @@ export default {
 .content {
   position: absolute;
   top: 44px;
-  bottom: 0;
+  bottom: 49px;
+  overflow: hidden;
   /* 或者 */
-  /* height: calc(100% - 44px); */
+  /* height: calc(100% - 44px - 49px); */
 }
 
 .detail-nav {
