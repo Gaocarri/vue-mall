@@ -77,7 +77,10 @@ export default {
   height: 40px;
   background-color: #eee;
   line-height: 40px;
-  position: relative;
+  position: fixed;
+  bottom:49px;
+  left: 0;
+  right: 0;
   font-size: 14px;
 }
 
