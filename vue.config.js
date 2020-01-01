@@ -11,6 +11,5 @@ module.exports = {
         'views': '@/views'
       }
     }
-  },
-  publicPath: '/Vue-mall/dist/'
+  }
 }
