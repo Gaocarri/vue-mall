@@ -41,7 +41,7 @@ const routes = [{
 
 const router = new VueRouter({
   routes,
-  mode: 'history'
+  // mode: 'history'会导致githubpages无法配置
 })
 
 export default router
