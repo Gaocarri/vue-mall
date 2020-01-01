@@ -12,5 +12,5 @@ module.exports = {
       }
     }
   },
-  publicPath: '/Vue-mall/'
+  publicPath: './Vue-mall/'
 }
