@@ -1,5 +1,5 @@
 <template>
-  <div class="tab-content-category">
+  <div class="tab-content-category" v-if="subcategories">
     <div v-for="(item,index) in subcategories.list" :key="index" class="item">
       <a :href="item.link">
         <img :src="item.image" alt @load="imageLoad(index)" />

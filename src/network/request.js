@@ -2,9 +2,8 @@ import axios from 'axios'
 
 export function request(config) {
   const instance = axios.create({
-    baseURL: 'http://123.207.32.32:8000/api/w1',
-    // 备用服务器
-    // baseURL: 'http://106.54.54.237:8000/api/w1',
+    baseURL: 'http://123.307.43.42:8000/api',
+    // 为避免接口暴露，此处是错误的地址
     timeout: 10000
   })
 
